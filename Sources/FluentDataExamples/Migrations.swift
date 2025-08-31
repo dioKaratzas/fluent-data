@@ -1,5 +1,9 @@
-import Foundation
+//
+//  Copyright © Dionysis Karatzas. All rights reserved.
+//
+
 import FluentKit
+import Foundation
 
 // MARK: - Create User Migration
 
@@ -11,7 +15,7 @@ struct CreateUser: AsyncMigration {
             .field("email", .string, .required)
             .create()
     }
-    
+
     func revert(on database: Database) async throws {
         try await database.schema("users").delete()
     }
@@ -27,7 +31,7 @@ struct CreateProduct: AsyncMigration {
             .field("price", .double, .required)
             .create()
     }
-    
+
     func revert(on database: Database) async throws {
         try await database.schema("products").delete()
     }

@@ -1,5 +1,9 @@
-import Foundation
+//
+//  Copyright © Dionysis Karatzas. All rights reserved.
+//
+
 import FluentKit
+import Foundation
 
 // MARK: - Database Keys
 

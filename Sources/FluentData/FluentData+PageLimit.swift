@@ -1,3 +1,7 @@
+//
+//  Copyright © Dionysis Karatzas. All rights reserved.
+//
+
 import Foundation
 
 extension FluentData {
@@ -45,7 +49,7 @@ extension FluentData.PageLimit: Equatable {}
 
 extension FluentData.PageLimit: CustomStringConvertible {
     public var description: String {
-        if let value = value {
+        if let value {
             return "PageLimit(\(value))"
         } else {
             return "PageLimit.noLimit"
