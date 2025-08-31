@@ -1,24 +1,54 @@
-// swift-tools-version: 6.1
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 6.2
 
 import PackageDescription
 
+enum Traits {
+    static let SQLite = "SQLite"
+    static let SQLCipher = "SQLCipher"
+}
+
 let package = Package(
-    name: "FluentClient",
+    name: "fluent-data",
+    platforms: [
+        .macOS(.v10_15),
+        .iOS(.v13),
+        .watchOS(.v6),
+        .tvOS(.v13),
+    ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "FluentClient",
-            targets: ["FluentClient"]),
+            name: "FluentData",
+            targets: ["FluentData"]
+        ),
+    ],
+    traits: [
+        .trait(name: Traits.SQLite, description: "Enable SQLite without encryption"),
+        .trait(name: Traits.SQLCipher, description: "Enable SQLCipher encryption support for encrypted databases"),
+        .default(enabledTraits: [Traits.SQLCipher])
+    ],
+    dependencies: [
+        .package(url: "https://github.com/dioKaratzas/fluent-sqlite-driver.git", branch: "feature/sqlite-cipher",  traits: [
+            .trait(name: Traits.SQLite, condition: .when(traits: [Traits.SQLite])),
+            .trait(name: Traits.SQLCipher, condition: .when(traits: [Traits.SQLCipher]))
+        ]),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "FluentClient"),
+            name: "FluentData",
+            dependencies: [
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+            ],
+            swiftSettings: [
+                .define(Traits.SQLCipher, .when(traits: [Traits.SQLCipher]))
+            ]
+        ),
         .testTarget(
-            name: "FluentClientTests",
-            dependencies: ["FluentClient"]
+            name: "FluentDataTests",
+            dependencies: ["FluentData"]
+        ),
+        .executableTarget(
+            name: "FluentDataExamples",
+            dependencies: ["FluentData"]
         ),
     ]
 )
