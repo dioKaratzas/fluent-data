@@ -35,7 +35,7 @@
 --group-blank-lines true
 --grouped-extension "MARK: %c"
 --guard-else same-line
---header "//\n//  Copyright © Dionysis Karatzas. All rights reserved.\n//"
+--header "//===----------------------------------------------------------------------===//\n//\n// This source file is part of the FluentData open source project\n//\n// Copyright (c) Dionysios Karatzas\n// Licensed under the MIT license\n//\n// See LICENSE.txt for license information\n//\n// SPDX-License-Identifier: MIT\n//\n//===----------------------------------------------------------------------===//"
 --hex-grouping 4,8
 --hex-literal-case uppercase
 --ifdef indent
