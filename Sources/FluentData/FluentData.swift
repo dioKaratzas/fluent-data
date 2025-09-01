@@ -51,10 +51,15 @@ public final class FluentData: Sendable {
     // MARK: - Public Initialization
 
     /// Initialize a new FluentData instance.
-    /// - Parameter logger: The logger to use for database operations. Defaults to "fluent-data".
-    public init(logger: Logger = Logger(label: "fluent-data")) {
+    /// - Parameters:
+    ///   - logger: The logger to use for database operations. Defaults to "fluent-data".
+    ///   - eventLoopGroup: The event loop group to use for database operations. Defaults to a multi-threaded group with system core count.
+    public init(
+        logger: Logger = Logger(label: "fluent-data"),
+        eventLoopGroup: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+    ) {
         self.logger = logger
-        self.storage = Storage(logger: logger)
+        self.storage = Storage(logger: logger, eventLoopGroup: eventLoopGroup)
     }
 
     deinit {
@@ -82,21 +87,17 @@ public final class FluentData: Sendable {
         )!
     }
 
-    /// Set a specific database as the default.
-    /// - Parameter id: The database ID to set as default.
-    public func setDefaultDatabase(_ id: DatabaseID) {
-        self.storage.defaultDatabaseID.withLockedValue { $0 = id }
-        self.databases.default(to: id)
-    }
-
-    /// Get the current default database ID
+    /// Get or set the current default database ID
     public var defaultDatabaseID: DatabaseID? {
-        self.storage.defaultDatabaseID.withLockedValue { $0 }
-    }
-
-    /// Check if a default database is already configured
-    public var hasDefaultDatabase: Bool {
-        self.defaultDatabaseID != nil
+        get {
+            self.storage.defaultDatabaseID.withLockedValue { $0 }
+        }
+        set {
+            self.storage.defaultDatabaseID.withLockedValue { $0 = newValue }
+            if let newValue {
+                self.databases.default(to: newValue)
+            }
+        }
     }
 
     // MARK: - Public Database Managers
@@ -142,7 +143,7 @@ public final class FluentData: Sendable {
 
     // MARK: - Public Configuration Properties
 
-    /// Set migration log level
+    /// Get or set the migration log level
     public var migrationLogLevel: Logger.Level {
         get { self.storage.migrationLogLevel.withLockedValue { $0 } }
         set { self.storage.migrationLogLevel.withLockedValue { $0 = newValue } }
@@ -164,7 +165,7 @@ public final class FluentData: Sendable {
         self.storage.history.withLockedValue { $0.removeAll() }
     }
 
-    /// Set pagination page size limit
+    /// Get or set the pagination page size limit
     public var pageSizeLimit: PageLimit {
         get { self.storage.pagination.withLockedValue { $0.pageSizeLimit } }
         set { self.storage.pagination.withLockedValue { $0.pageSizeLimit = newValue } }
@@ -199,7 +200,7 @@ extension FluentData {
         )
 
         // Connection configuration pipeline (encryption → user hook)
-        let configureConn: @Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void> = { conn, logger in
+        let configureConnection: @Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void> = { conn, logger in
             #if SQLCipher
                 let setEncryption: EventLoopFuture<Void> = configuration.encryption.isEncrypted
                     ? self.setEncryptionKey(conn, encryption: configuration.encryption)
@@ -216,7 +217,7 @@ extension FluentData {
 
         // Register the driver
         databases.use(
-            .sqlite(sqliteConfig, configureConnection: configureConn),
+            .sqlite(sqliteConfig, configureConnection: configureConnection),
             as: configuration.id
         )
 
@@ -343,9 +344,9 @@ extension FluentData {
         let pagination: NIOLockedValueBox<PaginationSettings>
         let defaultDatabaseID: NIOLockedValueBox<DatabaseID?>
 
-        init(logger: Logger) {
+        init(logger: Logger, eventLoopGroup: any EventLoopGroup) {
             self.logger = logger
-            self.eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+            self.eventLoopGroup = eventLoopGroup
             self.databases = Databases(threadPool: NIOThreadPool.singleton, on: self.eventLoopGroup)
             self.migrations = .init()
             self.migrationLogLevel = .init(.info)

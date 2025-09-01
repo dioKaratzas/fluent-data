@@ -81,7 +81,7 @@ final class DatabaseManager {
 
     /// Change the default database at runtime
     func switchDefaultToProducts() {
-        provider.setDefaultDatabase(.products)
+        provider.defaultDatabaseID = .products
     }
 
     /// Get current default database info
