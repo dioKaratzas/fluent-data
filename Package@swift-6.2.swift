@@ -27,7 +27,7 @@ let package = Package(
         .default(enabledTraits: [Traits.SQLCipher])
     ],
     dependencies: [
-        .package(url: "https://github.com/dioKaratzas/fluent-sqlite-driver.git", branch: "feature/sqlite-cipher",  traits: [
+        .package(url: "https://github.com/dioKaratzas/fluent-sqlite-driver.git", branch: "feature/sql-cipher",  traits: [
             .trait(name: Traits.SQLite, condition: .when(traits: [Traits.SQLite])),
             .trait(name: Traits.SQLCipher, condition: .when(traits: [Traits.SQLCipher]))
         ]),
@@ -44,10 +44,6 @@ let package = Package(
         ),
         .testTarget(
             name: "FluentDataTests",
-            dependencies: ["FluentData"]
-        ),
-        .executableTarget(
-            name: "FluentDataExamples",
             dependencies: ["FluentData"]
         ),
     ]

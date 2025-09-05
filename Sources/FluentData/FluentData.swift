@@ -194,11 +194,6 @@ extension FluentData {
             )
         }
 
-        // Build base SQLite configuration
-        let sqliteConfig = SQLiteConfiguration(
-            storage: .file(path: configuration.url.path)
-        )
-
         // Connection configuration pipeline (encryption → user hook)
         let configureConnection: @Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void> = { conn, logger in
             #if SQLCipher
@@ -217,7 +212,7 @@ extension FluentData {
 
         // Register the driver
         databases.use(
-            .sqlite(sqliteConfig, configureConnection: configureConnection),
+            .sqlite(configuration.sqliteConfiguration, configureConnection: configureConnection),
             as: configuration.id
         )
 

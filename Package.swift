@@ -17,7 +17,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/dioKaratzas/fluent-sqlite-driver.git", branch: "feature/sqlite-cipher"),
+        .package(url: "https://github.com/dioKaratzas/fluent-sqlite-driver.git", branch: "feature/sql-cipher"),
     ],
     targets: [
         .target(
@@ -28,10 +28,6 @@ let package = Package(
         ),
         .testTarget(
             name: "FluentDataTests",
-            dependencies: ["FluentData"]
-        ),
-        .executableTarget(
-            name: "FluentDataExamples",
             dependencies: ["FluentData"]
         ),
     ]

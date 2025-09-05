@@ -13,6 +13,7 @@
 
 import SQLiteNIO
 import FluentKit
+import SQLiteKit
 import Foundation
 
 #if SQLCipher
@@ -52,7 +53,7 @@ import Foundation
 /// ```
 public struct FluentDataConfiguration: Sendable {
     public let id: DatabaseID
-    public let url: URL
+    public let sqliteConfiguration: SQLiteConfiguration
     #if SQLCipher
         public let encryption: FluentDataEncryption
     #endif
@@ -68,13 +69,13 @@ public struct FluentDataConfiguration: Sendable {
         ///   - isDefault: Whether this should be the default database. Defaults to false.
         public init(
             id: DatabaseID,
-            url: URL,
+            sqliteConfiguration: SQLiteConfiguration,
             encryption: FluentDataEncryption = .none,
             isDefault: Bool = false,
             configureConnection: (@Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void>)? = nil
         ) {
             self.id = id
-            self.url = url
+            self.sqliteConfiguration = sqliteConfiguration
             self.encryption = encryption
             self.isDefault = isDefault
             self.configureConnection = configureConnection
@@ -88,14 +89,14 @@ public struct FluentDataConfiguration: Sendable {
         ///   - isDefault: Whether this should be the default database. Defaults to false.
         public init(
             id: DatabaseID,
-            url: URL,
+            sqliteConfiguration: SQLiteConfiguration,
             password: String,
             isDefault: Bool = false,
             configureConnection: (@Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void>)? = nil
         ) {
             self.init(
                 id: id,
-                url: url,
+                sqliteConfiguration: sqliteConfiguration,
                 encryption: .password(password),
                 isDefault: isDefault,
                 configureConnection: configureConnection
@@ -110,14 +111,14 @@ public struct FluentDataConfiguration: Sendable {
         ///   - isDefault: Whether this should be the default database. Defaults to false.
         public init(
             id: DatabaseID,
-            url: URL,
+            sqliteConfiguration: SQLiteConfiguration,
             passphraseData: Data,
             isDefault: Bool = false,
             configureConnection: (@Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void>)? = nil
         ) {
             self.init(
                 id: id,
-                url: url,
+                sqliteConfiguration: sqliteConfiguration,
                 encryption: .data(passphraseData),
                 isDefault: isDefault,
                 configureConnection: configureConnection
@@ -131,12 +132,12 @@ public struct FluentDataConfiguration: Sendable {
         ///   - isDefault: Whether this should be the default database. Defaults to false.
         public init(
             id: DatabaseID,
-            url: URL,
+            sqliteConfiguration: SQLiteConfiguration,
             isDefault: Bool = false,
             configureConnection: (@Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void>)? = nil
         ) {
             self.id = id
-            self.url = url
+            self.sqliteConfiguration = sqliteConfiguration
             self.isDefault = isDefault
             self.configureConnection = configureConnection
         }
