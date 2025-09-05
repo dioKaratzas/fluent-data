@@ -218,7 +218,7 @@ extension FluentData {
 
         // Make default if requested
         if configuration.isDefault {
-            databases.default(to: configuration.id)
+            self.defaultDatabaseID = configuration.id
         }
     }
 }
