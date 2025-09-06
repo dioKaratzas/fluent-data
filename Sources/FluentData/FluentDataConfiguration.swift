@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import NIO
 import SQLiteNIO
 import FluentKit
 import SQLiteKit
@@ -54,6 +55,10 @@ import Foundation
 public struct FluentDataConfiguration: Sendable {
     public let id: DatabaseID
     public let sqliteConfiguration: SQLiteConfiguration
+    public let connectionPoolTimeout: TimeAmount
+    public let dataEncoder: SQLiteDataEncoder
+    public let dataDecoder: SQLiteDataDecoder
+    public let sqlLogLevel: Logger.Level
     #if SQLCipher
         public let encryption: FluentDataEncryption
     #endif
@@ -71,12 +76,20 @@ public struct FluentDataConfiguration: Sendable {
             id: DatabaseID,
             sqliteConfiguration: SQLiteConfiguration,
             encryption: FluentDataEncryption = .none,
+            connectionPoolTimeout: TimeAmount = .seconds(10),
+            dataEncoder: SQLiteDataEncoder = .init(),
+            dataDecoder: SQLiteDataDecoder = .init(),
+            sqlLogLevel: Logger.Level = .debug,
             isDefault: Bool = false,
             configureConnection: (@Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void>)? = nil
         ) {
             self.id = id
             self.sqliteConfiguration = sqliteConfiguration
             self.encryption = encryption
+            self.connectionPoolTimeout = connectionPoolTimeout
+            self.dataEncoder = dataEncoder
+            self.dataDecoder = dataDecoder
+            self.sqlLogLevel = sqlLogLevel
             self.isDefault = isDefault
             self.configureConnection = configureConnection
         }
@@ -91,6 +104,10 @@ public struct FluentDataConfiguration: Sendable {
             id: DatabaseID,
             sqliteConfiguration: SQLiteConfiguration,
             password: String,
+            connectionPoolTimeout: TimeAmount = .seconds(10),
+            dataEncoder: SQLiteDataEncoder = .init(),
+            dataDecoder: SQLiteDataDecoder = .init(),
+            sqlLogLevel: Logger.Level = .debug,
             isDefault: Bool = false,
             configureConnection: (@Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void>)? = nil
         ) {
@@ -98,6 +115,10 @@ public struct FluentDataConfiguration: Sendable {
                 id: id,
                 sqliteConfiguration: sqliteConfiguration,
                 encryption: .password(password),
+                connectionPoolTimeout: connectionPoolTimeout,
+                dataEncoder: dataEncoder,
+                dataDecoder: dataDecoder,
+                sqlLogLevel: sqlLogLevel,
                 isDefault: isDefault,
                 configureConnection: configureConnection
             )
@@ -113,6 +134,10 @@ public struct FluentDataConfiguration: Sendable {
             id: DatabaseID,
             sqliteConfiguration: SQLiteConfiguration,
             passphraseData: Data,
+            connectionPoolTimeout: TimeAmount = .seconds(10),
+            dataEncoder: SQLiteDataEncoder = .init(),
+            dataDecoder: SQLiteDataDecoder = .init(),
+            sqlLogLevel: Logger.Level = .debug,
             isDefault: Bool = false,
             configureConnection: (@Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void>)? = nil
         ) {
@@ -120,6 +145,10 @@ public struct FluentDataConfiguration: Sendable {
                 id: id,
                 sqliteConfiguration: sqliteConfiguration,
                 encryption: .data(passphraseData),
+                connectionPoolTimeout: connectionPoolTimeout,
+                dataEncoder: dataEncoder,
+                dataDecoder: dataDecoder,
+                sqlLogLevel: sqlLogLevel,
                 isDefault: isDefault,
                 configureConnection: configureConnection
             )
@@ -133,11 +162,19 @@ public struct FluentDataConfiguration: Sendable {
         public init(
             id: DatabaseID,
             sqliteConfiguration: SQLiteConfiguration,
+            connectionPoolTimeout: TimeAmount = .seconds(10),
+            dataEncoder: SQLiteDataEncoder = .init(),
+            dataDecoder: SQLiteDataDecoder = .init(),
+            sqlLogLevel: Logger.Level = .debug,
             isDefault: Bool = false,
             configureConnection: (@Sendable (SQLiteConnection, Logger) -> EventLoopFuture<Void>)? = nil
         ) {
             self.id = id
             self.sqliteConfiguration = sqliteConfiguration
+            self.connectionPoolTimeout = connectionPoolTimeout
+            self.dataEncoder = dataEncoder
+            self.dataDecoder = dataDecoder
+            self.sqlLogLevel = sqlLogLevel
             self.isDefault = isDefault
             self.configureConnection = configureConnection
         }

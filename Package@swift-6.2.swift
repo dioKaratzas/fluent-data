@@ -20,6 +20,10 @@ let package = Package(
             name: "FluentData",
             targets: ["FluentData"]
         ),
+        .library(
+            name: "FluentSQLiteObservation",
+            targets: ["FluentSQLiteObservation"]
+        ),
     ],
     traits: [
         .trait(name: Traits.SQLite, description: "Enable SQLite without encryption"),
@@ -36,10 +40,17 @@ let package = Package(
         .target(
             name: "FluentData",
             dependencies: [
+                "FluentSQLiteObservation",
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ],
             swiftSettings: [
                 .define(Traits.SQLCipher, .when(traits: [Traits.SQLCipher]))
+            ]
+        ),
+        .target(
+            name: "FluentSQLiteObservation",
+            dependencies: [
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ]
         ),
         .testTarget(

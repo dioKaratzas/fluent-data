@@ -17,6 +17,7 @@ import SQLiteKit
 import Foundation
 import FluentSQLiteDriver
 import NIOConcurrencyHelpers
+import FluentSQLiteObservation
 #if SQLCipher
     import SQLiteNIO
 #endif
@@ -212,7 +213,14 @@ extension FluentData {
 
         // Register the driver
         databases.use(
-            .sqlite(configuration.sqliteConfiguration, configureConnection: configureConnection),
+            .sqliteWithObservation(
+                configuration.sqliteConfiguration,
+                connectionPoolTimeout: configuration.connectionPoolTimeout,
+                dataEncoder: configuration.dataEncoder,
+                dataDecoder: configuration.dataDecoder,
+                sqlLogLevel: configuration.sqlLogLevel,
+                configureConnection: configureConnection
+            ),
             as: configuration.id
         )
 
