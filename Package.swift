@@ -15,6 +15,10 @@ let package = Package(
             name: "FluentData",
             targets: ["FluentData"]
         ),
+        .library(
+            name: "FluentSQLiteObservation",
+            targets: ["FluentSQLiteObservation"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/dioKaratzas/fluent-sqlite-driver.git", branch: "feature/sql-cipher"),
@@ -22,6 +26,13 @@ let package = Package(
     targets: [
         .target(
             name: "FluentData",
+            dependencies: [
+                "FluentSQLiteObservation",
+                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+            ]
+        ),
+        .target(
+            name: "FluentSQLiteObservation",
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
             ]
