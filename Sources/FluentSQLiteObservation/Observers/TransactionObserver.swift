@@ -20,10 +20,7 @@ import Foundation
 ///
 /// A transaction observer is notified of individual changes (inserts, updates and deletes),
 /// before they are committed to disk, as well as transaction commits and rollbacks.
-public protocol TransactionObserver: AnyObject, Sendable {
-    /// A unique identifier for this observer instance.
-    var id: ObjectIdentifier { get }
-
+protocol TransactionObserver: AnyObject, Sendable {
     /// Returns whether the observer should be notified of events of the given operation.
     ///
     /// This method is called before each database change to determine if the observer
@@ -33,14 +30,15 @@ public protocol TransactionObserver: AnyObject, Sendable {
     /// - returns: Whether this observer wants to be notified of this event.
     func observes(operation: DatabaseEventOperation) -> Bool
 
-    /// Returns whether the observer should be notified of row deletions in the given table.
+    /// Called when the database was modified in some unspecified way.
     ///
-    /// This method helps the SQLite authorizer determine whether to prevent the
-    /// truncate optimization for DELETE statements.
+    /// This method allows a transaction observer to handle changes that are
+    /// not automatically detected. See <doc:GRDB/TransactionObserver#Dealing-with-Undetected-Changes>
+    /// and ``Database/notifyChanges(in:)`` for more information.
     ///
-    /// - parameter tableName: The name of a database table.
-    /// - returns: Whether this observer wants to be notified of deletions in this table.
-    func observesDeletions(in tableName: String) -> Bool
+    /// The exact nature of changes is unknown, but they comply to the
+    /// ``observes(eventsOfKind:)`` test.
+    func databaseDidChange()
 
     /// Called when a database change occurs.
     ///
