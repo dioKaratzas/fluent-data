@@ -13,7 +13,7 @@
 
 import SQLiteNIO
 
-/// A kind of database event.
+/// A type of database event operation.
 ///
 /// See the `TransactionObserver.observes(operation:)` method for more information.
 public enum DatabaseEventOperation: Sendable {

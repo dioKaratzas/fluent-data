@@ -24,12 +24,12 @@ public protocol TransactionObserver: AnyObject, Sendable {
     /// A unique identifier for this observer instance.
     var id: ObjectIdentifier { get }
 
-    /// Returns whether the observer should be notified of events of the given kind.
+    /// Returns whether the observer should be notified of events of the given operation.
     ///
     /// This method is called before each database change to determine if the observer
     /// should be notified of that specific change.
     ///
-    /// - parameter operation: The kind of database event.
+    /// - parameter operation: The operation of database event.
     /// - returns: Whether this observer wants to be notified of this event.
     func observes(operation: DatabaseEventOperation) -> Bool
 

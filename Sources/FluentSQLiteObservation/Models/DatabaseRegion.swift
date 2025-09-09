@@ -38,7 +38,7 @@
 ///
 /// Use those methods from ``TransactionObserver`` methods.
 ///
-/// - ``isModified(byEventsOfKind:)``
+/// - ``isModified(by:)``
 /// - ``isModified(by:)``
 
 import SQLiteNIO
@@ -93,7 +93,7 @@ public struct DatabaseRegion: Sendable {
     ///
     /// This method is not public because there is no known public use case for
     /// this intersection. It is currently only used as support for
-    /// the isModified(byEventsOfKind:) method.
+    /// the isModified(by:) method.
     func intersection(_ other: DatabaseRegion) -> DatabaseRegion {
         guard let tableRegions else {
             return other
@@ -220,7 +220,7 @@ extension DatabaseRegion {
     ///
     /// - precondition: event has been filtered by the same region
     ///   in the TransactionObserver.observes(operation:) method, by calling
-    ///   region.isModified(byEventsOfKind:)
+    ///   region.isModified(by:)
     public func isModified(by event: SQLiteUpdateEvent) -> Bool {
         guard let tableRegions else {
             // Full database: all changes are impactful
