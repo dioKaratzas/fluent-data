@@ -179,7 +179,13 @@ extension DatabaseConfigurationFactory {
             dataDecoder: dataDecoder,
             sqlLogLevel: sqlLogLevel,
             configureConnection: { connection, logger in
-                ConnectionObservationRegistry.shared.createBrokerIfNeeded(for: connection)
+                Task.detached {
+                    do {
+                        try await ConnectionObservationRegistry.shared.createBroker(for: connection)
+                    } catch {
+                        logger.error("Database observation system failed to initialize: \(error)")
+                    }
+                }
                 return (configureConnection?(connection, logger) ?? connection.eventLoop.makeSucceededVoidFuture()).flatMap {
                     connection.eventLoop.makeSucceededVoidFuture()
                 }
