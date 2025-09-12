@@ -87,6 +87,8 @@ private final actor FluentValueObserver<Value: Sendable>: TransactionObserver, S
     private let onChange: @Sendable (Value) async throws -> Void
     private let observedRegion: DatabaseRegion
 
+    // TODO: [OBSERVATION]: Add state for tracking pending changes and preventing redundant notifications
+
     init(
         database: any Database,
         fetch: @Sendable @escaping (any Database) async throws -> Value,
@@ -103,11 +105,17 @@ private final actor FluentValueObserver<Value: Sendable>: TransactionObserver, S
         observedRegion.isModified(by: operation)
     }
 
-    func databaseDidChange() async {}
+    func databaseDidChange() async {
+        // TODO: [OBSERVATION]: Schedule re-fetch when changes detected
+    }
 
-    func databaseDidChange(with event: SQLiteNIO.SQLiteUpdateEvent) async {}
+    func databaseDidChange(with event: SQLiteNIO.SQLiteUpdateEvent) async {
+        // TODO: [OBSERVATION]: Process specific event details for context
+    }
 
-    func databaseWillCommit() async throws {}
+    func databaseWillCommit() async throws {
+        // TODO: [OBSERVATION]: Add optional pre-commit validation
+    }
 
     // After a commit, re-fetch and notify if the region was modified
     func databaseDidCommit() async {
@@ -162,3 +170,24 @@ public final class FluentObservationCancellable: @unchecked Sendable {
         }
     }
 }
+
+// MARK: - AsyncSequence and Combine Extensions
+
+extension FluentValueObservation {
+    // TODO: [OBSERVATION]: Add AsyncSequence support
+    // public func values(in database: any Database) -> AsyncThrowingStream<Value, Error> {
+    //     // Return AsyncThrowingStream that yields values when database changes
+    // }
+}
+
+#if canImport(Combine)
+    import Combine
+
+    extension FluentValueObservation {
+        // TODO: [OBSERVATION]: Add Combine Publisher support
+        // public func publisher(in database: any Database) -> AnyPublisher<Value, Error> {
+        //     // Return Combine Publisher that emits values when database changes
+        //     // Users can then use .receive(on: .main) for threading control
+        // }
+    }
+#endif

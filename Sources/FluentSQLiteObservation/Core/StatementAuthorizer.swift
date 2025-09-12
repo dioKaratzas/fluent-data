@@ -104,6 +104,23 @@ final class StatementAuthorizer: Sendable {
         operations: [DatabaseEventOperation],
         transactionEffect: TransactionEffect?
     ) {
+        // TODO: [OBSERVATION]: Reset accumulators at start of tracking window
+        // Based on GRDB's implementation at lines 67-75:
+        // Call reset() method at the start of withRegionTracking
+
+        // TODO: [OBSERVATION]: Support row-level tracking for more precise notifications
+        // Based on GRDB's StatementAuthorizer implementation:
+        // 1. Track individual rowIDs in DatabaseRegion for specific row watching
+        // 2. Support DatabaseRegion(table: String, rowIds: Set<Int64>)
+        // 3. Enhance region intersection logic for row-level granularity
+
+        // TODO: [OBSERVATION]: Handle DDL operations that don't access user data
+        // Based on GRDB's implementation at lines 92-100:
+        // 1. Detect schema-changing operations (CREATE, DROP, ALTER)
+        // 2. Set invalidatesDatabaseSchemaCache flag appropriately
+        // 3. Allow region tracking to be optional for pure schema operations
+        // 4. Handle statements that only affect sqlite_master table
+
         try await connection.withAuthorizerObserver { event in
             self.handleAuthorizerEvent(event)
         } body: {
