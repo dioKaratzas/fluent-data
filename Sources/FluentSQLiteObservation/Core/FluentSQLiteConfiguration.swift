@@ -179,9 +179,17 @@ extension DatabaseConfigurationFactory {
             dataDecoder: dataDecoder,
             sqlLogLevel: sqlLogLevel,
             configureConnection: { connection, logger in
-                ConnectionObservationRegistry.shared.createBrokerIfNeeded(for: connection)
-                return (configureConnection?(connection, logger) ?? connection.eventLoop.makeSucceededVoidFuture()).flatMap {
-                    connection.eventLoop.makeSucceededVoidFuture()
+                (
+                    configureConnection?(connection, logger) ?? connection.eventLoop.makeSucceededVoidFuture()
+                ).flatMap {
+                    connection.eventLoop.makeFutureWithTask {
+                        do {
+                            try await ConnectionObservationRegistry.shared.installBrokerIfNeeded(connection)
+                        } catch {
+                            logger.error("Failed to set up observation hooks: \(error)")
+                            // swallow so pool startup continues
+                        }
+                    }
                 }
             }
         )
