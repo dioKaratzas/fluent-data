@@ -12,31 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 /// The effect of a SQL statement on database transactions.
-public enum TransactionEffect: Sendable {
-    /// A statement that does not impact transactions.
-    case none
-
-    /// A `BEGIN` or `BEGIN DEFERRED` or `BEGIN IMMEDIATE` or `BEGIN EXCLUSIVE` statement.
-    case beginDeferred
-
-    /// A `BEGIN IMMEDIATE` statement.
-    case beginImmediate
-
-    /// A `BEGIN EXCLUSIVE` statement.
-    case beginExclusive
-
-    /// A `COMMIT` statement.
-    case commit
-
-    /// A `ROLLBACK` statement.
-    case rollback
-
-    /// A `SAVEPOINT` statement.
-    case savepoint(String)
-
-    /// A `RELEASE SAVEPOINT` statement.
+enum TransactionEffect: Equatable {
+    case beginTransaction
+    case commitTransaction
+    case rollbackTransaction
+    case beginSavepoint(String)
     case releaseSavepoint(String)
-
-    /// A `ROLLBACK TO SAVEPOINT` statement.
-    case rollbackToSavepoint(String)
+    case rollbackSavepoint(String)
 }

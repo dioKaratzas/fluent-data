@@ -68,6 +68,9 @@ public struct DatabaseRegion: Sendable {
     public static let fullDatabase = DatabaseRegion(tableRegions: nil)
 
     /// The empty database region.
+    public static let empty = DatabaseRegion()
+
+    /// The empty database region.
     public init() {
         self.init(tableRegions: [:])
     }

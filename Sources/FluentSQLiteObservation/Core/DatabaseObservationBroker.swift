@@ -14,64 +14,6 @@
 import SQLiteNIO
 import Foundation
 
-/// Registry to manage observation brokers per connection
-final actor ConnectionObservationRegistry: Sendable {
-    static let shared = ConnectionObservationRegistry()
-
-    private var brokers: [ObjectIdentifier: DatabaseObservationBroker] = [:]
-
-    private init() {}
-
-    /// Returns existing broker for a connection if available.
-    func broker(for connection: SQLiteConnection) -> DatabaseObservationBroker? {
-        brokers[ObjectIdentifier(connection)]
-    }
-
-    /// Creates a broker or returns the existing one for the connection.
-    @discardableResult
-    func createBroker(for connection: SQLiteConnection) async throws -> DatabaseObservationBroker {
-        let id = ObjectIdentifier(connection)
-
-        if let existing = brokers[id] {
-            return existing
-        }
-
-        // Optional opportunistic cleanup to avoid map bloat.
-        await cleanup()
-
-        let broker = try await DatabaseObservationBroker(connection: connection)
-        brokers[id] = broker
-        return broker
-    }
-
-    /// Removes brokers for closed connections and tears down their hooks.
-    func cleanup() async {
-        // First, collect which are closed so we can remove hooks outside the filter pass.
-        var toRemove: [ObjectIdentifier] = []
-        for (id, broker) in brokers {
-            if await broker.connectionIsClosed {
-                toRemove.append(id)
-            }
-        }
-
-        // Tear down hooks before dropping references.
-        for id in toRemove {
-            if let broker = brokers[id] {
-                await broker.removeHooks()
-            }
-        }
-
-        // Keep only open brokers.
-        brokers = brokers.filter { key, _ in !toRemove.contains(key) }
-    }
-
-    func installBrokerHooks() async throws {
-        for broker in brokers.values {
-            try await broker.installHooks()
-        }
-    }
-}
-
 /// Manages database observation for a single SQLite connection
 final actor DatabaseObservationBroker: Sendable {
     /// Associated SQLite connection
@@ -80,17 +22,20 @@ final actor DatabaseObservationBroker: Sendable {
     /// Statement authorizer to enforce observation rules
     private let statementAuthorizer: StatementAuthorizer
 
+    private let transactionObserverRegistry: TransactionObserverRegistry
+
     /// Registered query observers
     private var hookTokens: [SQLiteNIO.SQLiteHookToken] = []
 
     private var areHooksInstalled = false
 
     /// Creates broker and installs statement authorizer
-    init(connection: SQLiteConnection) async throws {
+    init(connection: SQLiteConnection, transactionObserverPool: TransactionObserverRegistry) async throws {
         guard connection.isClosed == false else {
             throw FluentSQLiteObservationError.sqliteConnectionClosed
         }
         self.connection = connection
+        self.transactionObserverRegistry = transactionObserverPool
         statementAuthorizer = try await StatementAuthorizer(connection: connection)
     }
 
@@ -122,15 +67,17 @@ final actor DatabaseObservationBroker: Sendable {
         let commitToken = try await connection.addCommitObserver(lifetime: .pinned) { event in
         }
 
-        let rollbackTOken = try await connection.addRollbackObserver(lifetime: .pinned) { event in
+        let rollbackToken = try await connection.addRollbackObserver(lifetime: .pinned) { event in
         }
 
-        hookTokens.append(contentsOf: [updateToken, commitToken, rollbackTOken])
+        hookTokens.append(contentsOf: [updateToken, commitToken, rollbackToken])
+
+        areHooksInstalled = true
     }
 
     /// Cancels all hook tokens and cleans up resources
     func removeHooks() {
-        guard !hookTokens.isEmpty else {
+        guard areHooksInstalled else {
             return
         }
         for token in hookTokens {
@@ -138,5 +85,15 @@ final actor DatabaseObservationBroker: Sendable {
         }
         hookTokens.removeAll()
         areHooksInstalled = false
+    }
+
+    /// Run a statement on *this* connection while tracking region/ops via authorizer
+    func withRegionTracking<T: Sendable>(_ body: @Sendable () async throws -> T) async throws -> (
+        result: T,
+        region: DatabaseRegion,
+        operations: [DatabaseEventOperation],
+        transactionEffect: TransactionEffect?
+    ) {
+        try await statementAuthorizer.withRegionTracking(body)
     }
 }

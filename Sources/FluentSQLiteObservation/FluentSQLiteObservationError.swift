@@ -17,11 +17,14 @@ import Foundation
 public enum FluentSQLiteObservationError: Error, LocalizedError {
     /// The SQLite connection is closed
     case sqliteConnectionClosed
+    case unsupportedDatabase
 
     public var errorDescription: String? {
         switch self {
         case .sqliteConnectionClosed:
             return "The SQLite connection is closed."
+        case .unsupportedDatabase:
+            return "Database observation is only supported with SQLite databases"
         }
     }
 }

@@ -28,7 +28,7 @@ protocol TransactionObserver: AnyObject, Sendable {
     ///
     /// - parameter operation: The operation of database event.
     /// - returns: Whether this observer wants to be notified of this event.
-    func observes(operation: DatabaseEventOperation) -> Bool
+    func observes(operation: DatabaseEventOperation) async -> Bool
 
     /// Called when the database was modified in some unspecified way.
     ///
@@ -38,7 +38,7 @@ protocol TransactionObserver: AnyObject, Sendable {
     ///
     /// The exact nature of changes is unknown, but they comply to the
     /// ``observes(eventsOfKind:)`` test.
-    func databaseDidChange()
+    func databaseDidChange() async
 
     /// Called when a database change occurs.
     ///
@@ -46,7 +46,7 @@ protocol TransactionObserver: AnyObject, Sendable {
     /// that the observer has registered interest in via `observes(operation:)`.
     ///
     /// - parameter event: The database event.
-    func databaseDidChange(with event: SQLiteUpdateEvent)
+    func databaseDidChange(with event: SQLiteUpdateEvent) async
 
     /// Called before a transaction is committed.
     ///
@@ -54,16 +54,16 @@ protocol TransactionObserver: AnyObject, Sendable {
     /// If any observer throws an error, the transaction will be rolled back.
     ///
     /// - throws: An error to prevent the transaction from committing.
-    func databaseWillCommit() throws
+    func databaseWillCommit() async throws
 
     /// Called after a transaction has been committed.
     ///
     /// All changes notified via `databaseDidChange(with:)` are now persisted to disk.
-    func databaseDidCommit()
+    func databaseDidCommit() async
 
     /// Called after a transaction has been rolled back.
     ///
     /// All changes notified via `databaseDidChange(with:)` since the beginning of the
     /// transaction have been discarded.
-    func databaseDidRollback()
+    func databaseDidRollback() async
 }
