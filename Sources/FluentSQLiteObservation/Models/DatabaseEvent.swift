@@ -37,17 +37,21 @@ import SQLiteNIO
 // This bridges SQLiteNIO's update hook events with our observation system
 
 public struct DatabaseEvent: Sendable {
-    // TODO: [OBSERVATION]: Add Kind enum with SQLite operation codes
+// TODO: [OBSERVATION]: Add Kind enum with SQLite operation codes
+    // Based on GRDB's implementation at lines 1133-1142:
     // public enum Kind: CInt, Sendable {
     //     case insert = 18 // SQLITE_INSERT
-    //     case delete = 9  // SQLITE_DELETE
+    //     case delete = 9  // SQLITE_DELETE  
     //     case update = 23 // SQLITE_UPDATE
     // }
-
+    
     // TODO: [OBSERVATION]: Add core properties
+    // Based on GRDB's implementation at lines 1144-1151:
+    // private let impl: any DatabaseEventImpl  // GRDB uses impl pattern for thread safety
     // public let kind: Kind
-    // public let tableName: String
-    // public let rowID: Int64
+    // public var databaseName: String { impl.databaseName }
+    // public var tableName: String { impl.tableName }
+    // public var rowID: Int64 { impl.rowID }
 
     // TODO: [OBSERVATION]: Add initializer from SQLiteUpdateEvent
     // init(from sqliteEvent: SQLiteUpdateEvent) {

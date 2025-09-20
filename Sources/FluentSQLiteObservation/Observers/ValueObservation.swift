@@ -88,6 +88,14 @@ private final actor FluentValueObserver<Value: Sendable>: TransactionObserver, S
     private let observedRegion: DatabaseRegion
 
     // TODO: [OBSERVATION]: Add state for tracking pending changes and preventing redundant notifications
+    // Based on GRDB's ValueObserver implementation - KEY INSIGHT:
+    // private var isModified = false  // Tracks if database was modified in current transaction
+    //
+    // GRDB's efficient change detection mechanism:
+    // 1. observes(eventsOfKind:) - called ONCE per statement to check if observer is interested
+    // 2. databaseDidChange() - sets isModified = true when interested change occurs  
+    // 3. databaseDidCommit() - ONLY re-fetches if isModified = true, then resets to false
+    // 4. This prevents unnecessary re-fetches when transaction commits but no relevant changes occurred
 
     init(
         database: any Database,
@@ -106,19 +114,42 @@ private final actor FluentValueObserver<Value: Sendable>: TransactionObserver, S
     }
 
     func databaseDidChange() async {
-        // TODO: [OBSERVATION]: Schedule re-fetch when changes detected
+        // TODO: [OBSERVATION]: Implement GRDB's efficient change detection
+        // Based on GRDB's implementation at lines 722-726 and 350-354:
+        // 1. Set isModified = true (database was modified!)
+        // 2. Call stopObservingDatabaseChangesUntilNextTransaction() for efficiency
+        // 3. This prevents further change notifications until next transaction
+        // Key insight: We don't re-fetch here, only mark that changes occurred
     }
 
     func databaseDidChange(with event: SQLiteNIO.SQLiteUpdateEvent) async {
-        // TODO: [OBSERVATION]: Process specific event details for context
+        // TODO: [OBSERVATION]: Implement region-specific change detection
+        // Based on GRDB's implementation at lines 729-735 and 357-363:
+        // 1. Check if observedRegion.isModified(by: event) 
+        // 2. If yes: set isModified = true and call stopObservingDatabaseChangesUntilNextTransaction()
+        // 3. If no: ignore the event (not relevant to our observation)
+        // This provides fine-grained filtering - only react to changes that affect our data
     }
 
     func databaseWillCommit() async throws {
         // TODO: [OBSERVATION]: Add optional pre-commit validation
+        // Based on GRDB's TransactionObserver protocol:
+        // This method can throw to cancel the transaction
+        // Most ValueObservations don't need this, but it's available for validation logic
     }
 
     // After a commit, re-fetch and notify if the region was modified
     func databaseDidCommit() async {
+        // TODO: [OBSERVATION]: Implement GRDB's efficient commit handling
+        // Based on GRDB's implementation at lines 738-743 and 366-378:
+        // 1. CRITICAL: Check if isModified == true (guard isModified else { return })
+        // 2. Reset isModified = false for next transaction
+        // 3. ONLY re-fetch if database was actually modified in this transaction
+        // 4. This prevents unnecessary re-fetches on commits with no relevant changes
+        //
+        // Current implementation is INEFFICIENT - it always re-fetches on every commit
+        // GRDB's approach: only re-fetch when isModified flag indicates relevant changes occurred
+        
         let database = self.database
 
         do {

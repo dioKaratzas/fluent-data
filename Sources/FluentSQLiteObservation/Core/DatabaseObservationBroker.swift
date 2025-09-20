@@ -51,6 +51,10 @@ final actor DatabaseObservationBroker: Sendable {
     //         }
     //     }
     // }
+    //
+    // CRITICAL: This is GRDB's key optimization - update hook is only installed when needed!
+    // When statementObservations becomes empty, update hook is removed to avoid overhead
+    // When statementObservations has items, update hook is installed to capture events
 
     /// Creates broker and installs statement authorizer
     init(connection: SQLiteConnection, transactionObserverPool: TransactionObserverRegistry) async throws {

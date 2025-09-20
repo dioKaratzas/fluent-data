@@ -44,9 +44,11 @@ import SQLiteNIO
 // - isWrapping(_ observer: TransactionObserver) -> Bool for observer removal
 
 // TODO: [OBSERVATION]: Add TransactionObservationExtent enum
+// Based on GRDB's Database.TransactionObservationExtent at lines 964, 980-988:
 // enum TransactionObservationExtent {
-//     case observerLifetime    // Observe until observer is deallocated
-//     case nextTransaction     // Observe only the next transaction
+//     case observerLifetime    // Observe until observer is deallocated (weak reference)
+//     case nextTransaction     // Observe only the next transaction (strong reference, auto-removed)
+//     case databaseLifetime    // Observe until database is closed (strong reference)
 // }
 
 // TODO: [OBSERVATION]: Implement TransactionObservation class
@@ -85,19 +87,26 @@ import SQLiteNIO
 //     // Delegate methods to wrapped observer...
 // }
 
-// TODO: [OBSERVATION]: Implement StatementObservation class
-// Based on GRDB's implementation at lines 1050-1100:
-// final class StatementObservation {
-//     let transactionObservation: TransactionObservation
-//     let tracksEvent: DatabaseEventPredicate
-//
-//     init(transactionObservation: TransactionObservation, trackingEvents: DatabaseEventPredicate) {
+// TODO: [OBSERVATION]: Implement StatementObservation struct (not class!)
+// Based on GRDB's implementation at lines 1055-1071:
+// struct StatementObservation {  // NOTE: struct, not class!
+//     var transactionObservation: TransactionObservation
+//     var tracksEvent: DatabaseEventPredicate
+//     
+//     init(transactionObservation: TransactionObservation, trackingEvents predicate: DatabaseEventPredicate) {
 //         self.transactionObservation = transactionObservation
-//         self.tracksEvent = trackingEvents
+//         self.tracksEvent = predicate
 //     }
+// }
 //
-//     func tracksEvent(_ event: some DatabaseEventProtocol) -> Bool {
-//         return tracksEvent(event)
+// TODO: [OBSERVATION]: Implement DatabaseEventPredicate enum
+// Based on GRDB's implementation at lines 1539-1586:
+// enum DatabaseEventPredicate {
+//     case all  // All events
+//     case matching(observedEventKinds: [DatabaseEventKind], authorizerEventKinds: [DatabaseEventKind])
+//     
+//     func callAsFunction(_ event: some DatabaseEventProtocol) -> Bool {
+//         // Implementation for filtering events
 //     }
 // }
 
