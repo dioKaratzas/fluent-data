@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
+import SQLiteNIO
 
 /// Pool that tracks registered transaction observers and signals when
 /// observation should start/stop based on the 0↔1 threshold.
@@ -77,5 +78,12 @@ final actor TransactionObserverRegistry: Sendable {
         }
         transactionObservers.removeAll()
         await onObservationShouldStop?()
+    }
+
+    /// Notify all interested observers of a database change
+    func notifyChange(event: SQLiteUpdateEvent) async {
+        for observer in transactionObservers {
+            await observer.databaseDidChange(with: event)
+        }
     }
 }

@@ -104,7 +104,9 @@ final class StatementAuthorizer: Sendable {
         operations: [DatabaseEventOperation],
         transactionEffect: TransactionEffect?
     ) {
-        try await connection.withAuthorizerObserver { event in
+        resetAccumulators()
+
+        return try await connection.withAuthorizerObserver { event in
             self.handleAuthorizerEvent(event)
         } body: {
             let result = try await body()

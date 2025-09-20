@@ -61,7 +61,10 @@ final actor DatabaseObservationBroker: Sendable {
             return
         }
 
-        let updateToken = try await connection.addUpdateObserver(lifetime: .pinned) { event in
+        let updateToken = try await connection.addUpdateObserver(lifetime: .pinned) { [weak self] event in
+            Task {
+                await self?.transactionObserverRegistry.notifyChange(event: event)
+            }
         }
 
         let commitToken = try await connection.addCommitObserver(lifetime: .pinned) { event in
